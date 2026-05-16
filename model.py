@@ -1,21 +1,18 @@
 from typing import Annotated
 from fastapi import Depends, FastAPI, Query
 from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlalchemy import Column, TEXT, UUID
 
-import uuid
+from ulid import ULID
 
-
-# class Hero(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(index=True)
-#     age: int | None = Field(default=None, index=True)
-#     secret_name: str
-#     quick_test: str
-
-class Dataset(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    public_id: uuid.UUID = Field(default_factory=uuid.uuid4)
+class DatasetBase(SQLModel):
     description: str
+
+class Dataset(DatasetBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    public_id: ULID = Field(default_factory=ULID, sa_column=Column(UUID))
+    
+    data : str = Field(default=None, sa_column=Column(TEXT))
 
 
 sqlite_file_name = "database.db"
@@ -41,5 +38,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.rebuild:
-        print("rebuilding database, hope you meant to do that LOL")
+        print("creating database and tables (as necessary)")
         SQLModel.metadata.create_all(engine)
